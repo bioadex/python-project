@@ -1,0 +1,22 @@
+from barcode import EAN13
+from barcode.writer import ImageWriter
+from PIL import Image
+
+def generate_barcode(data):
+    if not data.isdigit() or len(data) != 12:
+        raise ValueError("EAN13 barcode requires exactly 12 numeric digits.")
+
+    # Generate barcode
+    ean = EAN13(data, writer=ImageWriter())
+
+    # Save and get actual filename (already includes .png)
+    barcode_filename = ean.save("barcode")
+    print(f"EAN13 barcode saved as {barcode_filename}")
+
+    # Open image using the exact filename returned
+    img = Image.open(barcode_filename)
+    img.show()
+
+# Example input
+data = "736388526721"
+generate_barcode(data)
