@@ -1,0 +1,68 @@
+Firstly to need to ssh into laptop windows 
+
+You can find the steps on how to do that in my github page 
+
+After you successful ssh into your windows laptop 
+
+Python on Windows to remotely turn on your laptop camera 
+
+download python3 from python official website : https://www.python.org/downloads/windows/
+
+During install, check ✅ “Add to PATH”.  # note the path where Python3 is installed 
+
+Open in PowerShell in Administrative mode 
+
+then install the packages:
+
+pip install opencv-python flask
+
+After the installation 
+
+Create the python streaming script 
+
+Create a file C:\cam_stream.py with this code:   # make sure that this is save under C drive 
+
+import cv2
+from flask import Flask, Response
+
+app = Flask(__name__)
+camera = cv2.VideoCapture(0)  # 0 = default webcam
+
+def generate_frames():
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            # Encode the frame as JPEG
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            # Stream it as multipart response
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+@app.route('/video')
+def video():
+    """Video streaming route. Go to /video to see the feed."""
+    return Response(generate_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/favicon.ico')
+def favicon():
+    """Prevent browser 404 favicon requests."""
+    return '', 204  # No content, but prevents 404 log spam
+
+if __name__ == '__main__':
+    # host=0.0.0.0 makes it accessible on your LAN
+    app.run(host='0.0.0.0', port=5000, debug=False)
+
+
+copy the script then save the file in C drive as cam_stream.py 
+
+ssh into your windows laptop 
+
+ssh your_windows_user@windows_ip "python C:/cam_stream.py"        # this is will start the python script 
+
+view the live stream from any broswer connected to your LAN 
+
+http://your_windows_ip:5000/video
